@@ -185,6 +185,37 @@ export default function App() {
     setClientId(newClientId);
   };
 
+  const migrateBroker = () => {
+    if (!socket || status !== 'connected') {
+      addLog('Web harus terhubung dengan broker lama untuk melakukan migrasi ESP8266.', 'error');
+      return;
+    }
+    
+    let brokerIdx = '1';
+    if (preset === 'flespi') brokerIdx = '2';
+    else if (preset === 'ably') brokerIdx = '3';
+
+    // Kirim perintah ke ESP8266 terlebih dahulu lewat koneksi lama
+    socket.emit('publish_mqtt', { topic: 'kontrol/broker', message: brokerIdx });
+    addLog(`Mengarahkan ESP8266 ke Broker ${brokerIdx} (${serverEndpoint})...`, 'warn');
+    
+    // Putuskan lalu hubungkan kembali secara otomatis ke broker baru
+    setTimeout(() => {
+      socket.emit('disconnect_mqtt');
+      addLog('Memindahkan koneksi web ke broker baru...', 'info');
+      setTimeout(() => {
+        setConnectedServer(serverEndpoint);
+        socket.emit('connect_mqtt', {
+          server: serverEndpoint,
+          port,
+          username,
+          password,
+          clientId
+        });
+      }, 1500);
+    }, 500);
+  };
+
   const connectMqtt = () => {
     setStatus('connecting');
     setErrorMsg('');
@@ -571,6 +602,16 @@ export default function App() {
               >
                 {status === 'connected' ? 'Disconnect' : 'Connect to Broker'}
               </button>
+              
+              {status === 'connected' && serverEndpoint && serverEndpoint !== connectedServer && (
+                <button
+                  onClick={migrateBroker}
+                  className="px-4 py-2 bg-blue-500/10 border border-blue-500/30 text-blue-400 rounded-lg text-sm font-medium hover:bg-blue-500/20 transition-colors flex items-center gap-2"
+                >
+                  <Link className="w-4 h-4" />
+                  Migrasi ESP8266 & Web ke Broker Ini
+                </button>
+              )}
             </div>
           </div>
         )}
