@@ -45,6 +45,7 @@ export default function App() {
   
   // Connection Settings
   const [showSettings, setShowSettings] = useState(false);
+  const [preset, setPreset] = useState('myqtthub');
   const [serverEndpoint, setServerEndpoint] = useState('node02.myqtthub.com'); 
   const [port, setPort] = useState('8883');
   const [username, setUsername] = useState('rafliuser12');
@@ -148,7 +149,8 @@ export default function App() {
     };
   }, []); // Empty deps because we only want one socket instance
 
-  const handlePresetChange = (preset: string) => {
+  const handlePresetChange = (newPreset: string) => {
+    setPreset(newPreset);
     let newServer = '';
     let newPort = '8883';
     let newUser = '';
@@ -156,19 +158,19 @@ export default function App() {
     let newClientId = '';
     let brokerIdx = '1';
 
-    if (preset === 'myqtthub') {
+    if (newPreset === 'myqtthub') {
       newServer = 'node02.myqtthub.com';
       newUser = 'rafliuser12';
       newPass = '123';
       newClientId = 'web_client';
       brokerIdx = '1';
-    } else if (preset === 'flespi') {
+    } else if (newPreset === 'flespi') {
       newServer = 'mqtt.flespi.io';
       newUser = 'wUBDyNSeByJS8EzKBwytOYvNIo6PTV6t2Uv4QebFVhEgwFKAb2YprfNSaUZYlBna';
       newPass = '';
       newClientId = '';
       brokerIdx = '2';
-    } else if (preset === 'ably') {
+    } else if (newPreset === 'ably') {
       newServer = 'mqtt.ably.io';
       newUser = 'jS-Azw.k5X7NA';
       newPass = '2ufRbWJ5dqv2o5NTT5M_OSc9YJCqvP3TTPed4qpm760';
@@ -181,28 +183,6 @@ export default function App() {
     setUsername(newUser);
     setPassword(newPass);
     setClientId(newClientId);
-
-    if (socket && status === 'connected') {
-      // Kirim perintah ke ESP8266 terlebih dahulu lewat koneksi lama
-      socket.emit('publish_mqtt', { topic: 'kontrol/broker', message: brokerIdx });
-      addLog(`Mengarahkan ESP8266 ke Broker ${brokerIdx} (${newServer})...`, 'warn');
-      
-      // Putuskan lalu hubungkan kembali secara otomatis ke broker baru
-      setTimeout(() => {
-        socket.emit('disconnect_mqtt');
-        addLog('Memindahkan koneksi web ke broker baru...', 'info');
-        setTimeout(() => {
-          setConnectedServer(newServer);
-          socket.emit('connect_mqtt', {
-            server: newServer,
-            port: newPort,
-            username: newUser,
-            password: newPass,
-            clientId: newClientId
-          });
-        }, 1500);
-      }, 500);
-    }
   };
 
   const connectMqtt = () => {
@@ -503,6 +483,7 @@ export default function App() {
               <div className="space-y-1 lg:col-span-5 mb-2 border-b border-neutral-800 pb-4">
                 <label className="text-xs text-neutral-400 font-medium">Broker Preset (Pilihan Cepat)</label>
                 <select
+                  value={preset}
                   onChange={(e) => handlePresetChange(e.target.value)}
                   className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 outline-none appearance-none"
                 >
