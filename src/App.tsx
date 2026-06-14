@@ -47,7 +47,7 @@ export default function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [serverEndpoint, setServerEndpoint] = useState('node02.myqtthub.com'); 
   const [port, setPort] = useState('8883');
-  const [username, setUsername] = useState('rafliuser1');
+  const [username, setUsername] = useState('rafliuser12');
   const [password, setPassword] = useState('123');
   const [clientId, setClientId] = useState('web_client');
   const [showPassword, setShowPassword] = useState(false);
@@ -158,7 +158,7 @@ export default function App() {
 
     if (preset === 'myqtthub') {
       newServer = 'node02.myqtthub.com';
-      newUser = 'rafliuser1';
+      newUser = 'rafliuser12';
       newPass = '123';
       newClientId = 'web_client';
       brokerIdx = '1';
